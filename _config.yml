@@ -1,0 +1,14 @@
+# 쓰담랩 홈페이지 설정 (GitHub Pages가 자동으로 읽어요)
+title: SSDAM-LAB 쓰담랩
+lang: ko
+timezone: Asia/Seoul
+markdown: kramdown
+permalink: /blog/:title/
+exclude:
+  - README.md
+defaults:
+  - scope:
+      path: ""
+      type: posts
+    values:
+      layout: post

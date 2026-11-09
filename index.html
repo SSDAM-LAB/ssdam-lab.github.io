@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>SSDAM-LAB 쓰담랩</title>
+<meta name="description" content="일상을 쓰담쓰담하는 작은 앱을 만드는 쓰담랩. 담노트 DAM:NOTE와 개발 일지.">
+<meta property="og:title" content="SSDAM-LAB 쓰담랩">
+<meta property="og:description" content="일상을 쓰담쓰담하는 작은 앱을 만드는 곳">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#245edb">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%90%B0%3C/text%3E%3C/svg%3E">
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden}
+body{font:13px/1.5 Tahoma,"Segoe UI","Malgun Gothic","Apple SD Gothic Neo","Noto Sans KR",sans-serif;color:#1a1a1a;-webkit-tap-highlight-color:transparent;user-select:none}
+button{font:inherit;color:inherit}
+a{color:#0b4fd1}
+
+/* 바탕화면 */
+#desk{position:fixed;inset:0 0 36px 0;overflow:hidden;
+  background:
+   radial-gradient(60px 26px at 18% 22%,#fff9 60%,transparent 62%),
+   radial-gradient(90px 34px at 24% 20%,#fffb 60%,transparent 62%),
+   radial-gradient(70px 26px at 72% 14%,#fff9 60%,transparent 62%),
+   radial-gradient(110px 36px at 80% 16%,#fffa 60%,transparent 62%),
+   radial-gradient(80px 28px at 58% 34%,#fff7 60%,transparent 62%),
+   radial-gradient(120% 70% at 50% 120%,#f9c9db 0%,#f6d9e6 35%,transparent 70%),
+   linear-gradient(#5aa2ef 0%,#8cc2f5 40%,#c9e3fa 72%,#f3dbe7 100%)}
+#desk::after{content:"SSDAM-LAB";position:absolute;right:18px;bottom:10px;color:#fff;opacity:.75;font:italic 700 22px/1 Tahoma,sans-serif;letter-spacing:.5px;text-shadow:1px 1px 2px #0003;pointer-events:none}
+
+.icons{position:absolute;left:10px;top:10px;display:grid;grid-auto-flow:row;gap:6px;width:84px}
+.ico{display:flex;flex-direction:column;align-items:center;gap:3px;width:84px;padding:4px 2px;border:1px dotted transparent;background:none;cursor:default}
+.ico .g{font-size:34px;line-height:40px;filter:drop-shadow(1px 2px 1px #0004)}
+.ico .l{color:#fff;font-size:12px;line-height:1.3;text-align:center;text-shadow:1px 1px 1px #000a;padding:0 3px;word-break:keep-all}
+.ico.on .l{background:#316ac5;text-shadow:none}
+.ico.on .g{filter:drop-shadow(1px 2px 1px #0004) brightness(.82) sepia(.4) hue-rotate(180deg) saturate(2)}
+.ico:focus-visible{border-color:#fff}
+
+/* 창 */
+.win{position:absolute;display:flex;flex-direction:column;background:#ece9d8;border:3px solid #0831d9;border-top:0;border-radius:8px 8px 0 0;box-shadow:2px 3px 10px #0005;min-width:260px;min-height:160px;max-width:100%;max-height:100%}
+.win.off{border-color:#7b8fe3}
+.tb{display:flex;align-items:center;gap:5px;height:30px;padding:0 4px 0 7px;border-radius:7px 7px 0 0;margin:0 -3px;color:#fff;cursor:default;touch-action:none;
+  background:linear-gradient(#0997ff 0%,#0053ee 8%,#0050ee 40%,#0066ff 88%,#0066ff 93%,#005bff 95%,#003dd7 96%,#003dd7 100%)}
+.win.off .tb{background:linear-gradient(#a3bdf5 0%,#7c9ce9 10%,#7b9be7 85%,#8aa6ea 100%)}
+.tb .ti{font-size:14px}
+.tb .tt{flex:1;font-weight:700;font-size:13px;text-shadow:1px 1px #0a1883;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tb button{width:22px;height:22px;border:1px solid #fff;border-radius:3px;padding:0;display:grid;place-items:center;font:700 12px/1 Tahoma,sans-serif;color:#fff;
+  background:linear-gradient(#5d97ff,#2265e8 60%,#1b4fd1)}
+.tb button:hover{filter:brightness(1.15)}
+.tb button.x{background:linear-gradient(#ee8a6b,#d9532c 60%,#c4401c)}
+.win.off .tb button{opacity:.75}
+.mb{display:flex;gap:2px;padding:1px 4px;border-bottom:1px solid #d5d2c2;font-size:12px}
+.mb span{padding:1px 6px}
+.mb span:hover{background:#316ac5;color:#fff}
+.body{flex:1;overflow:auto;margin:4px;background:#fff;border:1px solid #7f9db9;user-select:text}
+.sb{font-size:11.5px;color:#444;padding:2px 8px 3px;border-top:1px solid #fff;display:flex;justify-content:space-between}
+.win.max{left:0!important;top:0!important;width:100%!important;height:100%!important;border-radius:0}
+.win.max .tb{border-radius:0}
+.win.min{display:none}
+
+/* 탐색기 */
+.addr{display:flex;align-items:center;gap:6px;padding:3px 6px;font-size:12px;border-bottom:1px solid #d5d2c2}
+.addr .box{flex:1;background:#fff;border:1px solid #7f9db9;padding:1px 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.exp{display:flex;min-height:100%}
+.side{width:170px;flex:none;padding:10px;background:linear-gradient(#7ba2e7,#6375d6)}
+.panel{background:#fff;border-radius:6px 6px 0 0;margin-bottom:10px;overflow:hidden;font-size:12px}
+.panel b{display:block;padding:5px 9px;color:#215dc6;background:linear-gradient(90deg,#fff,#c6d3f7)}
+.panel div{padding:7px 9px;background:#d6dff7;color:#215dc6;line-height:1.7}
+.panel a{color:#215dc6;text-decoration:none;cursor:pointer;display:block}
+.panel a:hover{text-decoration:underline}
+.list{flex:1;padding:6px}
+.row{display:flex;align-items:center;gap:10px;width:100%;padding:6px 8px;border:1px solid transparent;background:none;text-align:left;cursor:default;border-radius:2px}
+.row:hover{border-color:#c6d3f7;background:#f1f5fe}
+.row.on{background:#316ac5;color:#fff}
+.row .g{font-size:24px;flex:none}
+.row .t{flex:1;min-width:0}
+.row .t b{display:block;font-weight:400;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .t small{color:#777;font-size:11.5px}
+.row.on .t small{color:#dfe8ff}
+.tag{display:inline-block;font-size:11px;padding:0 6px;border-radius:8px;background:#fde3ec;color:#a3285a;margin-left:4px}
+.empty{padding:28px;text-align:center;color:#777}
+
+/* 글(메모장) */
+.post{padding:22px 26px 34px;max-width:720px;margin:0 auto;font-size:15px;line-height:1.85;color:#222}
+.post h1{font-size:21px;margin:0 0 4px;line-height:1.4}
+.post .meta{color:#888;font-size:12.5px;margin-bottom:20px;padding-bottom:12px;border-bottom:1px dashed #ccc}
+.post h2{font-size:17px;margin:26px 0 8px;color:#0b3fa8}
+.post h3{font-size:15.5px;margin:20px 0 6px}
+.post img{max-width:100%;height:auto;border:1px solid #ddd;border-radius:4px}
+.post blockquote{margin:14px 0;padding:8px 14px;background:#fff6d6;border:1px solid #f0d77a;border-radius:4px}
+.post code{background:#f2f2f2;padding:1px 4px;border-radius:3px;font-size:.92em}
+.post pre{background:#f6f6f6;padding:10px;overflow:auto;border:1px solid #e3e3e3}
+.post ul,.post ol{padding-left:22px}
+.post hr{border:0;border-top:1px dashed #ccc;margin:22px 0}
+
+/* 정보창(소개·담노트·의견함) */
+.sheet{padding:18px 20px;font-size:13.5px;line-height:1.75;user-select:text}
+.sheet h2{font-size:16px;margin:0 0 2px}
+.sheet .hd{display:flex;gap:14px;align-items:center;margin-bottom:14px}
+.sheet .hd .g{font-size:46px;line-height:1}
+.sheet .sub{color:#666;font-size:12.5px}
+.sheet fieldset{border:1px solid #d0d0bf;border-radius:4px;margin:12px 0;padding:8px 12px 10px}
+.sheet legend{color:#0046d5;padding:0 4px;font-size:12.5px}
+.sheet ul{margin:4px 0;padding-left:18px}
+.xbtn{display:inline-flex;align-items:center;gap:6px;min-width:84px;justify-content:center;padding:4px 14px;border:1px solid #003c74;border-radius:3px;background:linear-gradient(#fff,#ecebe6 86%,#d6d0c5);color:#000;text-decoration:none;cursor:pointer;font-size:12.5px}
+.xbtn:hover{box-shadow:inset 0 0 0 2px #f8b636}
+.xbtn:focus-visible{outline:1px dotted #000;outline-offset:-4px}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+
+/* 작업 표시줄 */
+#bar{position:fixed;left:0;right:0;bottom:0;height:36px;display:flex;align-items:center;gap:4px;padding-bottom:env(safe-area-inset-bottom);z-index:9000;
+  background:linear-gradient(#1f2f86 0%,#3168d5 3%,#4993e6 6%,#2157d7 10%,#2663e0 85%,#1941a5 100%)}
+#start{height:36px;padding:0 20px 0 10px;border:0;border-radius:0 14px 14px 0;color:#fff;font:italic 700 17px/1 Tahoma,sans-serif;text-shadow:1px 1px 2px #0006;display:flex;align-items:center;gap:6px;cursor:pointer;
+  background:linear-gradient(#388e3c 0%,#3c9f3c 6%,#5fbf4f 14%,#3da63a 40%,#2f8f2f 85%,#1f6f1f 100%);box-shadow:inset -2px 0 3px #0003}
+#start:hover,#start.on{filter:brightness(1.1)}
+#tasks{flex:1;display:flex;gap:4px;min-width:0;overflow:hidden;padding-left:4px}
+.task{flex:0 1 170px;min-width:0;height:28px;padding:0 8px;border:1px solid #1c3fa8;border-radius:3px;color:#fff;display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;
+  background:linear-gradient(#5b9bf4,#3b7ee8 50%,#2c6be0)}
+.task span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.task.on{background:linear-gradient(#1e4fc2,#2558cc);box-shadow:inset 1px 1px 3px #0006}
+#tray{height:36px;display:flex;align-items:center;gap:8px;padding:0 12px;color:#fff;font-size:12px;border-left:1px solid #0d3aa8;
+  background:linear-gradient(#0c59b9 0%,#139ee9 6%,#18b5f2 10%,#139beb 14%,#1290e8 80%,#0d8dea 100%)}
+
+/* 시작 메뉴 */
+#menu{position:fixed;left:0;bottom:36px;width:330px;max-width:100vw;z-index:9100;border:2px solid #1c4ec0;border-radius:8px 8px 0 0;overflow:hidden;box-shadow:3px -2px 10px #0005;display:none}
+#menu.on{display:block}
+#menu .top{display:flex;align-items:center;gap:10px;padding:8px 10px;color:#fff;font:700 15px Tahoma,sans-serif;text-shadow:1px 1px 2px #0007;background:linear-gradient(#1868ce,#0e60cb 30%,#2a77d8)}
+#menu .top .av{width:42px;height:42px;border:2px solid #fff;border-radius:4px;background:#fde3ec;display:grid;place-items:center;font-size:26px}
+#menu .cols{display:flex;border-top:2px solid #f0a05a}
+#menu .l{flex:1;background:#fff;padding:6px 0}
+#menu .r{width:140px;background:#d3e5fa;border-left:1px solid #95bdee;padding:6px 0}
+#menu .it{display:flex;align-items:center;gap:8px;width:100%;padding:5px 10px;border:0;background:none;text-align:left;cursor:pointer;font-size:12.5px}
+#menu .it .g{font-size:22px;width:26px;text-align:center}
+#menu .it b{display:block;font-size:12.5px}
+#menu .it small{color:#777;font-size:11px}
+#menu .r .it{color:#0a246a;font-size:12px}
+#menu .r .it .g{font-size:18px}
+#menu .it:hover{background:#316ac5;color:#fff}
+#menu .it:hover small{color:#dfe8ff}
+#menu .bot{display:flex;justify-content:flex-end;gap:10px;padding:6px 10px;background:linear-gradient(#4282d6,#3b77d0 50%,#2d63bf)}
+#menu .bot button{border:0;background:none;color:#fff;display:flex;align-items:center;gap:5px;cursor:pointer;font-size:12px}
+#menu .bot i{display:grid;place-items:center;width:22px;height:22px;border-radius:4px;border:1px solid #fff;font-style:normal;font-size:12px}
+#menu .bot .off i{background:#d9532c}
+#menu .bot .lo i{background:#e5a118}
+
+/* 부팅·종료 화면 */
+.screen{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;color:#fff;text-align:center}
+#boot{background:#000;cursor:pointer}
+#boot .logo{font:italic 700 34px/1 Tahoma,sans-serif;letter-spacing:1px}
+#boot .logo em{font-style:normal;color:#f58fb4}
+#boot .sm{font-size:12px;color:#aaa;font-style:normal;letter-spacing:0}
+.prog{width:150px;height:18px;border:2px solid #b2b2b2;border-radius:4px;padding:2px;overflow:hidden;position:relative}
+.prog i{position:absolute;top:2px;width:30px;height:10px;display:flex;gap:2px;animation:slide 1.2s linear infinite}
+.prog i b{flex:1;border-radius:1px;background:linear-gradient(#2838c7,#3c78ff 50%,#2838c7)}
+@keyframes slide{from{left:-34px}to{left:150px}}
+#bye{background:#5a7edc;display:none}
+#bye.on{display:flex}
+#bye p{margin:0;font-size:16px}
+@media (prefers-reduced-motion:reduce){.prog i{animation:none;left:60px}}
+
+/* 휴대폰 */
+@media (max-width:700px){
+  .icons{grid-template-columns:repeat(3,84px);width:auto;gap:12px 8px;left:50%;transform:translateX(-50%);top:18px}
+  .win{left:0!important;top:0!important;width:100%!important;height:100%!important;border-radius:0;border-width:0}
+  .tb{margin:0;border-radius:0;height:36px}
+  .tb button{width:28px;height:28px}
+  .tb .mx{display:none}
+  .side{display:none}
+  .mb{display:none}
+  .post{padding:18px 18px 30px;font-size:15.5px}
+  .task{flex-basis:110px}
+  #desk::after{font-size:17px}
+}
+</style>
+</head>
+<body>
+
+<div id="boot" class="screen" role="status" aria-label="불러오는 중">
+  <div class="logo"><em>🐰</em> SSDAM-LAB<br><span class="sm">쓰담랩</span></div>
+  <div class="prog" aria-hidden="true"><i><b></b><b></b><b></b></i></div>
+</div>
+
+<main id="desk" aria-label="쓰담랩 바탕화면">
+  <div class="icons" id="icons"></div>
+</main>
+
+<div id="menu" role="menu" aria-label="쓰담 메뉴">
+  <div class="top"><div class="av">🐰</div>SSDAM-LAB</div>
+  <div class="cols">
+    <div class="l" id="menuL"></div>
+    <div class="r" id="menuR"></div>
+  </div>
+  <div class="bot">
+    <button class="lo" id="mlo" type="button"><i>↻</i>새로 고침</button>
+    <button class="off" id="moff" type="button"><i>⏻</i>끄기</button>
+  </div>
+</div>
+
+<nav id="bar" aria-label="작업 표시줄">
+  <button id="start" type="button" aria-haspopup="menu" aria-expanded="false"><span style="font-style:normal">🐰</span>쓰담</button>
+  <div id="tasks"></div>
+  <div id="tray"><span aria-hidden="true">🔈</span><span id="clock"></span></div>
+</nav>
+
+<div id="bye" class="screen">
+  <p>이제 창을 닫아도 안전합니다 🐰</p>
+  <button class="xbtn" id="rebootBtn" type="button">다시 켜기</button>
+</div>
+
+<noscript><div style="position:fixed;inset:0;background:#fff;padding:24px;z-index:99999">쓰담랩 홈페이지는 자바스크립트가 켜져 있어야 보여요. <a href="https://ssdam-lab.github.io/damnote/">담노트 바로 가기</a></div></noscript>
+
+<script>
+'use strict';
+/* ===== 여기만 고치면 되는 설정 ===== */
+const SITE = {
+  damnote: 'https://ssdam-lab.github.io/damnote/',
+  feedback: 'https://docs.google.com/forms/d/e/1FAIpQLSccP2rB9VgH_hOcn8loWSsKgoarQWGY8yYRV7AKCN9gAW533w/viewform',
+  github: 'https://github.com/ssdam-lab'
+};
+/* ================================== */
+
+const $ = (s, r = document) => r.querySelector(s);
+function h(tag, attrs, ...kids) {
+  const e = document.createElement(tag);
+  for (const k in attrs || {}) {
+    const v = attrs[k];
+    if (v == null || v === false) continue;
+    if (k === 'class') e.className = v;
+    else if (k === 'html') e.innerHTML = v;
+    else if (k.startsWith('on')) e.addEventListener(k.slice(2), v);
+    else e.setAttribute(k, v === true ? '' : v);
+  }
+  for (const c of kids.flat()) if (c != null && c !== false) e.append(c.nodeType ? c : document.createTextNode(c));
+  return e;
+}
+const isPhone = () => matchMedia('(max-width:700px)').matches;
+const coarse = matchMedia('(pointer:coarse)').matches;
+const store = { get(k) { try { return sessionStorage.getItem(k); } catch { return null; } }, set(k, v) { try { sessionStorage.setItem(k, v); } catch {} } };
+
+/* ---------- 글 불러오기 ---------- */
+let POSTS = null;
+async function loadPosts() {
+  if (POSTS) return POSTS;
+  try {
+    const r = await fetch('posts.json', { cache: 'no-cache' });
+    const j = await r.json();
+    POSTS = Array.isArray(j) ? j.filter(p => p && p.slug) : [];
+  } catch { POSTS = []; }
+  POSTS.sort((a, b) => String(b.date).localeCompare(String(a.date)));
+  return POSTS;
+}
+const fmtDate = d => { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(d || ''); return m ? `${m[1]}. ${+m[2]}. ${+m[3]}.` : ''; };
+
+/* ---------- 창 관리 ---------- */
+const WINS = new Map();
+let zTop = 10, cascade = 0;
+function focusWin(w) {
+  for (const o of WINS.values()) { o.el.classList.toggle('off', o !== w); o.task.classList.toggle('on', o === w && !o.el.classList.contains('min')); }
+  if (!w) return;
+  w.el.style.zIndex = ++zTop;
+  w.el.classList.remove('min');
+  w.task.classList.add('on');
+  if (w.hash && location.hash !== w.hash) history.replaceState(null, '', w.hash);
+}
+function topWin() { let best = null; for (const o of WINS.values()) if (!o.el.classList.contains('min') && (!best || +o.el.style.zIndex > +best.el.style.zIndex)) best = o; return best; }
+function closeWin(w) {
+  w.el.remove(); w.task.remove(); WINS.delete(w.id);
+  const t = topWin(); focusWin(t);
+  if (!t) history.replaceState(null, '', location.pathname);
+}
+function minWin(w) { w.el.classList.add('min'); w.task.classList.remove('on'); const t = topWin(); focusWin(t); if (!t) history.replaceState(null, '', location.pathname); }
+
+function openWin({ id, title, icon, w = 560, h: ht = 420, body, menu = true, status, hash }) {
+  if (WINS.has(id)) { const o = WINS.get(id); focusWin(o); return o; }
+  const desk = $('#desk');
+  const dw = desk.clientWidth, dh = desk.clientHeight;
+  const W = Math.min(w, dw - 16), H = Math.min(ht, dh - 16);
+  const x = Math.max(8, Math.min(dw - W - 8, 110 + cascade * 28)), y = Math.max(8, Math.min(dh - H - 8, 24 + cascade * 26));
+  cascade = (cascade + 1) % 6;
+  const o = { id, hash };
+  const bMin = h('button', { type: 'button', 'aria-label': '최소화', onclick: e => { e.stopPropagation(); minWin(o); } }, '_');
+  const bMax = h('button', { type: 'button', class: 'mx', 'aria-label': '최대화', onclick: e => { e.stopPropagation(); o.el.classList.toggle('max'); } }, '□');
+  const bX = h('button', { type: 'button', class: 'x', 'aria-label': '닫기', onclick: e => { e.stopPropagation(); closeWin(o); } }, '✕');
+  const tb = h('div', { class: 'tb' }, h('span', { class: 'ti', 'aria-hidden': 'true' }, icon), h('span', { class: 'tt' }, title), bMin, bMax, bX);
+  o.el = h('section', { class: 'win', role: 'dialog', 'aria-label': title, style: `left:${x}px;top:${y}px;width:${W}px;height:${H}px` },
+    tb,
+    menu ? h('div', { class: 'mb', 'aria-hidden': 'true' }, ...['파일', '편집', '보기', '즐겨찾기', '도움말'].map(t => h('span', null, t))) : null,
+    body,
+    status ? h('div', { class: 'sb' }, status) : null);
+  o.el.addEventListener('pointerdown', () => focusWin(o));
+  tb.addEventListener('dblclick', e => { if (e.target.closest('button')) return; o.el.classList.toggle('max'); });
+  dragify(o.el, tb);
+  o.task = h('button', { type: 'button', class: 'task', onclick: () => { const top = topWin(); if (top === o && !o.el.classList.contains('min')) minWin(o); else focusWin(o); } }, h('b', { 'aria-hidden': 'true' }, icon), h('span', null, title));
+  $('#tasks').append(o.task);
+  desk.append(o.el);
+  WINS.set(id, o);
+  focusWin(o);
+  return o;
+}
+function dragify(win, handle) {
+  let sx, sy, ox, oy, on = false;
+  handle.addEventListener('pointerdown', e => {
+    if (e.target.closest('button') || win.classList.contains('max') || isPhone()) return;
+    on = true; sx = e.clientX; sy = e.clientY; ox = win.offsetLeft; oy = win.offsetTop;
+    handle.setPointerCapture(e.pointerId);
+  });
+  handle.addEventListener('pointermove', e => {
+    if (!on) return;
+    const desk = $('#desk');
+    const nx = Math.max(-win.offsetWidth + 80, Math.min(desk.clientWidth - 80, ox + e.clientX - sx));
+    const ny = Math.max(0, Math.min(desk.clientHeight - 30, oy + e.clientY - sy));
+    win.style.left = nx + 'px'; win.style.top = ny + 'px';
+  });
+  const end = () => { on = false; };
+  handle.addEventListener('pointerup', end); handle.addEventListener('pointercancel', end);
+}
+
+/* ---------- 창 내용 ---------- */
+const APPS = {
+  about: { icon: '🐰', label: '쓰담랩 소개', open: openAbout },
+  damnote: { icon: '📒', label: '담노트', open: openDamnote },
+  devlog: { icon: '📁', label: '개발 일지', open: () => openDevlog() },
+  feedback: { icon: '💌', label: '의견함', open: openFeedback },
+  trash: { icon: '🗑️', label: '휴지통', open: openTrash },
+};
+
+function openAbout() {
+  openWin({ id: 'about', hash: '#/about', title: '쓰담랩 소개 - 등록 정보', icon: '🐰', w: 440, h: 470, menu: false,
+    body: h('div', { class: 'body' }, h('div', { class: 'sheet' },
+      h('div', { class: 'hd' }, h('div', { class: 'g' }, '🐰'), h('div', null, h('h2', null, 'SSDAM-LAB 쓰담랩'), h('div', { class: 'sub' }, '일상을 쓰담쓰담하는 작은 앱을 만드는 곳'))),
+      h('fieldset', null, h('legend', null, '만든 것'),
+        h('ul', null, h('li', null, '📒 담노트 DAM:NOTE (템플릿 메모장)'))),
+      h('fieldset', null, h('legend', null, '쓰담랩 앱의 약속'),
+        h('ul', null,
+          h('li', null, '로그인이나 회원가입 없이 써요'),
+          h('li', null, '내가 쓴 내용은 내 기기 안에만 저장돼요'),
+          h('li', null, '광고와 방문자 추적을 넣지 않아요'))),
+      h('fieldset', null, h('legend', null, '이 홈페이지'),
+        h('div', null, '업데이트 소식과 만드는 이야기를 「개발 일지」에 적어요. 궁금한 점이나 바라는 기능은 「의견함」으로 보내 주세요.')),
+      h('div', { class: 'btns' },
+        h('button', { class: 'xbtn', type: 'button', onclick: () => openDevlog() }, '📁 개발 일지'),
+        h('button', { class: 'xbtn', type: 'button', onclick: openFeedback }, '💌 의견함')))) });
+}
+
+function openDamnote() {
+  openWin({ id: 'damnote', hash: '#/damnote', title: '담노트 DAM:NOTE', icon: '📒', w: 460, h: 500, menu: false,
+    body: h('div', { class: 'body' }, h('div', { class: 'sheet' },
+      h('div', { class: 'hd' }, h('div', { class: 'g' }, '📒'), h('div', null, h('h2', null, '담노트 DAM:NOTE'), h('div', { class: 'sub' }, '골라 쓰는 템플릿 메모장 · PC · 안드로이드 · 아이폰'))),
+      h('fieldset', null, h('legend', null, '이런 걸 할 수 있어요'),
+        h('ul', null,
+          h('li', null, '타로 일지, 덕질 일기, 만년 다이어리, 스터디 플래너 등 여러 템플릿'),
+          h('li', null, '사진·스티커 붙이기, 페이지 계속 추가하기'),
+          h('li', null, 'PDF 저장, SNS 크기 이미지로 내보내기'),
+          h('li', null, '폴더 정리, 앱 잠금, 백업'),
+          h('li', null, '숫자 6자리로 다른 기기와 메모 맞추기'))),
+      h('fieldset', null, h('legend', null, '설치하기'),
+        h('div', null, '열어서 주소창의 설치 버튼(PC·안드로이드)이나 공유 → 홈 화면에 추가(아이폰)를 누르면 앱처럼 쓸 수 있어요.')),
+      h('div', { class: 'btns' },
+        h('a', { class: 'xbtn', href: SITE.damnote, target: '_blank', rel: 'noopener' }, '📒 담노트 열기'),
+        h('button', { class: 'xbtn', type: 'button', onclick: () => openDevlog('담노트') }, '📁 업데이트 소식')))),
+    status: '로그인 없이 내 기기에 저장' });
+}
+
+function openFeedback() {
+  openWin({ id: 'feedback', hash: '#/feedback', title: '의견함 - 새 메시지', icon: '💌', w: 420, h: 330, menu: false,
+    body: h('div', { class: 'body' }, h('div', { class: 'sheet' },
+      h('div', { class: 'hd' }, h('div', { class: 'g' }, '💌'), h('div', null, h('h2', null, '의견함'), h('div', { class: 'sub' }, '불편한 점, 바라는 기능, 응원 다 좋아요'))),
+      h('div', null, '버튼을 누르면 구글 설문 의견함이 새 창으로 열려요. 남겨 주신 의견은 개발 일지에서 반영 소식으로 알려 드릴게요.'),
+      h('div', { class: 'btns' }, h('a', { class: 'xbtn', href: SITE.feedback, target: '_blank', rel: 'noopener' }, '✉️ 의견 보내기')))) });
+}
+
+function openTrash() {
+  openWin({ id: 'trash', hash: '#/trash', title: '휴지통', icon: '🗑️', w: 380, h: 240, menu: false,
+    body: h('div', { class: 'body' }, h('div', { class: 'empty' }, '휴지통이 비어 있어요 ✨', h('br'), h('small', null, '버리지 못한 아이디어는 개발 일지에 있어요'))) });
+}
+
+async function openDevlog(tag) {
+  const list = h('div', { class: 'list' }, h('div', { class: 'empty' }, '불러오는 중…'));
+  const status = h('span', null, '');
+  const filterBox = h('span', null, '');
+  const o = openWin({ id: 'devlog', hash: '#/devlog', title: '개발 일지', icon: '📁', w: 640, h: 440,
+    body: h('div', { class: 'body', style: 'display:flex;flex-direction:column;margin-top:0' },
+      h('div', { class: 'addr' }, '주소', h('div', { class: 'box' }, 'C:\\쓰담랩\\개발 일지', filterBox)),
+      h('div', { class: 'exp', style: 'flex:1' },
+        h('div', { class: 'side' },
+          h('div', { class: 'panel' }, h('b', null, '파일 및 폴더 작업'), h('div', null,
+            h('a', { onclick: () => render() }, '📄 모든 글 보기'),
+            h('a', { onclick: () => render('담노트') }, '📒 담노트 소식만 보기'))),
+          h('div', { class: 'panel' }, h('b', null, '기타 위치'), h('div', null,
+            h('a', { onclick: openAbout }, '🐰 쓰담랩 소개'),
+            h('a', { onclick: openFeedback }, '💌 의견함')))),
+        list)),
+    status: h('span', null, status, h('span', null, '쓰담랩')) });
+  if (!o.render) {
+    o.render = render;
+  }
+  await o.render(tag);
+
+  async function render(t) {
+    const posts = await loadPosts();
+    const shown = t ? posts.filter(p => (p.tags || []).includes(t)) : posts;
+    filterBox.textContent = t ? `\\${t}` : '';
+    list.replaceChildren();
+    if (!shown.length) list.append(h('div', { class: 'empty' }, '아직 글이 없어요'));
+    for (const p of shown) {
+      const row = h('button', { type: 'button', class: 'row' },
+        h('span', { class: 'g', 'aria-hidden': 'true' }, '📝'),
+        h('span', { class: 't' }, h('b', null, p.title || p.slug), h('small', null, fmtDate(p.date), ...(p.tags || []).map(x => h('span', { class: 'tag' }, x)))));
+      row.addEventListener('click', () => {
+        list.querySelectorAll('.row.on').forEach(r => r.classList.remove('on'));
+        row.classList.add('on');
+        if (coarse || isPhone()) openPost(p.slug);
+      });
+      row.addEventListener('dblclick', () => openPost(p.slug));
+      row.addEventListener('keydown', e => { if (e.key === 'Enter') openPost(p.slug); });
+      list.append(row);
+    }
+    status.textContent = `개체 ${shown.length}개`;
+  }
+}
+// 이미 열린 개발 일지 창에서 필터 바꾸기
+const _openDevlog = openDevlog;
+openDevlog = async function (tag) {
+  const o = WINS.get('devlog');
+  if (o && o.render) { focusWin(o); return o.render(tag); }
+  return _openDevlog(tag);
+};
+
+async function openPost(slug) {
+  const posts = await loadPosts();
+  const p = posts.find(x => x.slug === slug);
+  if (!p) { openDevlog(); return; }
+  const id = 'post:' + slug;
+  const art = h('article', { class: 'post' },
+    h('h1', null, p.title || p.slug),
+    h('div', { class: 'meta' }, fmtDate(p.date), ...(p.tags || []).map(x => h('span', { class: 'tag' }, x))),
+    h('div', { html: p.html || '' }));
+  art.querySelectorAll('a[href^="http"]').forEach(a => { a.target = '_blank'; a.rel = 'noopener'; });
+  const copyBtn = h('button', { class: 'xbtn', type: 'button', style: 'min-width:0;padding:1px 10px;font-size:11.5px' }, '🔗 링크 복사');
+  copyBtn.addEventListener('click', async () => {
+    const url = location.origin + (p.url || location.pathname);
+    try { await navigator.clipboard.writeText(url); copyBtn.textContent = '✔ 복사했어요'; }
+    catch { prompt('이 주소를 복사하세요', url); }
+    setTimeout(() => { copyBtn.textContent = '🔗 링크 복사'; }, 1800);
+  });
+  openWin({ id, hash: '#/post/' + encodeURIComponent(slug), title: (p.title || slug) + '.txt - 메모장', icon: '📝', w: 700, h: 520,
+    body: h('div', { class: 'body' }, art),
+    status: h('span', { style: 'display:flex;gap:10px;align-items:center;width:100%;justify-content:space-between' }, h('span', null, fmtDate(p.date)), copyBtn) });
+}
+
+/* ---------- 바탕화면 아이콘 ---------- */
+function buildIcons() {
+  const box = $('#icons');
+  for (const key of ['about', 'damnote', 'devlog', 'feedback', 'trash']) {
+    const a = APPS[key];
+    const b = h('button', { type: 'button', class: 'ico', 'aria-label': a.label + ' 열기' }, h('span', { class: 'g', 'aria-hidden': 'true' }, a.icon), h('span', { class: 'l' }, a.label));
+    b.addEventListener('click', e => {
+      e.stopPropagation();
+      box.querySelectorAll('.ico.on').forEach(x => x.classList.remove('on'));
+      b.classList.add('on');
+      if (coarse || isPhone()) a.open();
+    });
+    b.addEventListener('dblclick', () => a.open());
+    b.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); a.open(); } });
+    box.append(b);
+  }
+  $('#desk').addEventListener('pointerdown', e => { if (e.target.id === 'desk') { box.querySelectorAll('.ico.on').forEach(x => x.classList.remove('on')); focusWin(null); } });
+}
+
+/* ---------- 시작 메뉴 ---------- */
+function buildMenu() {
+  const L = $('#menuL'), R = $('#menuR');
+  const item = (g, title, sub, fn) => h('button', { type: 'button', class: 'it', role: 'menuitem', onclick: () => { toggleMenu(false); fn(); } }, h('span', { class: 'g', 'aria-hidden': 'true' }, g), h('span', null, h('b', null, title), sub ? h('small', null, sub) : null));
+  L.append(
+    item('📒', '담노트', '템플릿 메모장', openDamnote),
+    item('📁', '개발 일지', '업데이트·만드는 이야기', () => openDevlog()),
+    item('💌', '의견함', '의견 보내기', openFeedback));
+  R.append(
+    item('🐰', '쓰담랩 소개', null, openAbout),
+    item('🗑️', '휴지통', null, openTrash),
+    item('🌐', 'GitHub', null, () => window.open(SITE.github, '_blank', 'noopener')));
+  $('#start').addEventListener('click', e => { e.stopPropagation(); toggleMenu(); });
+  document.addEventListener('pointerdown', e => { if (!e.target.closest('#menu,#start')) toggleMenu(false); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') toggleMenu(false); });
+  $('#mlo').addEventListener('click', () => location.reload());
+  $('#moff').addEventListener('click', () => { toggleMenu(false); $('#bye').classList.add('on'); });
+  $('#rebootBtn').addEventListener('click', () => { $('#bye').classList.remove('on'); });
+}
+function toggleMenu(force) {
+  const m = $('#menu'), on = force == null ? !m.classList.contains('on') : force;
+  m.classList.toggle('on', on); $('#start').classList.toggle('on', on); $('#start').setAttribute('aria-expanded', on);
+}
+
+/* ---------- 시계 ---------- */
+function tick() {
+  const d = new Date(), hh = d.getHours(), mm = String(d.getMinutes()).padStart(2, '0');
+  $('#clock').textContent = `${hh < 12 ? '오전' : '오후'} ${hh % 12 || 12}:${mm}`;
+}
+
+/* ---------- 주소(#) 따라 창 열기 ---------- */
+function route() {
+  const m = /^#\/(\w+)(?:\/(.+))?$/.exec(location.hash);
+  if (!m) return;
+  const [, k, arg] = m;
+  if (k === 'post' && arg) openPost(decodeURIComponent(arg));
+  else if (APPS[k]) APPS[k].open();
+}
+
+/* ---------- 시작 ---------- */
+buildIcons(); buildMenu(); tick(); setInterval(tick, 15000);
+loadPosts();
+const boot = $('#boot');
+const endBoot = () => { if (!boot.isConnected) return; boot.remove(); store.set('ssdam:booted', '1'); route(); if (!location.hash && !isPhone()) openAbout(); };
+if (store.get('ssdam:booted') || matchMedia('(prefers-reduced-motion:reduce)').matches) endBoot();
+else { boot.addEventListener('click', endBoot); setTimeout(endBoot, 1800); }
+addEventListener('hashchange', route);
+</script>
+</body>
+</html>
