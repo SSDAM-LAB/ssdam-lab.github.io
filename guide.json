@@ -1,0 +1,6 @@
+---
+layout: null
+---
+{% assign pages = site.guide | sort: "order" %}[{% for p in pages %}
+{"slug":{{ p.slug | jsonify }},"title":{{ p.title | jsonify }},"icon":{{ p.icon | jsonify }},"html":{{ p.content | jsonify }}}{% unless forloop.last %},{% endunless %}{% endfor %}
+]

@@ -94,6 +94,26 @@ a{color:#0b4fd1}
 .post pre{background:#f6f6f6;padding:10px;overflow:auto;border:1px solid #e3e3e3}
 .post ul,.post ol{padding-left:22px}
 .post hr{border:0;border-top:1px dashed #ccc;margin:22px 0}
+.post table{border-collapse:collapse;width:100%;margin:12px 0;font-size:14px}
+.post th,.post td{border:1px solid #cfd8ea;padding:6px 10px;text-align:left;vertical-align:top}
+.post th{background:#e8eefb;color:#0b3fa8;font-weight:700}
+.post ol li,.post ul li{margin:3px 0}
+
+/* 사용 설명서 (도움말 센터) */
+.help{display:flex;flex-direction:column;min-height:100%}
+.hhead{display:flex;align-items:center;gap:12px;padding:10px 16px;color:#fff;background:linear-gradient(#3a7bd5,#2a5fb8);border-bottom:3px solid #f0a05a}
+.hhead .g{font-size:30px}
+.hhead b{display:block;font-size:16px;text-shadow:1px 1px #0a1883}
+.hhead small{font-size:12px;color:#dfe8ff}
+.hwrap{flex:1;display:flex;min-height:0}
+.hnav{width:190px;flex:none;padding:10px 8px;background:#eef3fc;border-right:1px solid #c6d3f7}
+.hnav button{display:flex;align-items:center;gap:8px;width:100%;padding:7px 9px;border:1px solid transparent;border-radius:3px;background:none;text-align:left;cursor:pointer;font-size:12.5px;color:#0a246a}
+.hnav button:hover{background:#fff;border-color:#c6d3f7}
+.hnav button.on{background:#316ac5;color:#fff}
+.hnav button .g{font-size:16px;width:20px;text-align:center}
+.hmain{flex:1;min-width:0}
+.hmain .post{padding-top:18px}
+.hpager{display:flex;justify-content:space-between;gap:8px;padding:0 26px 26px;max-width:720px;margin:0 auto}
 
 /* 정보창(소개·담노트·의견함) */
 .sheet{padding:18px 20px;font-size:13.5px;line-height:1.75;user-select:text}
@@ -168,6 +188,11 @@ a{color:#0b4fd1}
   .tb button{width:28px;height:28px}
   .tb .mx{display:none}
   .side{display:none}
+  .hwrap{flex-direction:column}
+  .hnav{width:auto;display:flex;gap:4px;overflow-x:auto;border-right:0;border-bottom:1px solid #c6d3f7;padding:6px}
+  .hnav button{width:auto;flex:none;white-space:nowrap}
+  .hhead{padding:8px 12px}
+  .hpager{padding:0 18px 22px}
   .mb{display:none}
   .post{padding:18px 18px 30px;font-size:15.5px}
   .task{flex-basis:110px}
@@ -321,6 +346,7 @@ function dragify(win, handle) {
 const APPS = {
   about: { icon: '🐰', label: '쓰담랩 소개', open: openAbout },
   damnote: { icon: '📒', label: '담노트', open: openDamnote },
+  guide: { icon: '❓', label: '사용 설명서', open: () => openGuide() },
   devlog: { icon: '📁', label: '개발 일지', open: () => openDevlog() },
   feedback: { icon: '💌', label: '의견함', open: openFeedback },
   trash: { icon: '🗑️', label: '휴지통', open: openTrash },
@@ -340,6 +366,7 @@ function openAbout() {
       h('fieldset', null, h('legend', null, '이 홈페이지'),
         h('div', null, '업데이트 소식과 만드는 이야기를 「개발 일지」에 적어요. 궁금한 점이나 바라는 기능은 「의견함」으로 보내 주세요.')),
       h('div', { class: 'btns' },
+        h('button', { class: 'xbtn', type: 'button', onclick: () => openGuide() }, '❓ 사용 설명서'),
         h('button', { class: 'xbtn', type: 'button', onclick: () => openDevlog() }, '📁 개발 일지'),
         h('button', { class: 'xbtn', type: 'button', onclick: openFeedback }, '💌 의견함')))) });
 }
@@ -356,9 +383,10 @@ function openDamnote() {
           h('li', null, '폴더 정리, 앱 잠금, 백업'),
           h('li', null, '숫자 6자리로 다른 기기와 메모 맞추기'))),
       h('fieldset', null, h('legend', null, '설치하기'),
-        h('div', null, '열어서 주소창의 설치 버튼(PC·안드로이드)이나 공유 → 홈 화면에 추가(아이폰)를 누르면 앱처럼 쓸 수 있어요.')),
+        h('div', null, '열어서 주소창의 설치 버튼(PC·안드로이드)이나 공유 → 홈 화면에 추가(아이폰)를 누르면 앱처럼 쓸 수 있어요. 자세한 방법은 사용 설명서에 있어요.')),
       h('div', { class: 'btns' },
         h('a', { class: 'xbtn', href: SITE.damnote, target: '_blank', rel: 'noopener' }, '📒 담노트 열기'),
+        h('button', { class: 'xbtn', type: 'button', onclick: () => openGuide() }, '❓ 사용 설명서'),
         h('button', { class: 'xbtn', type: 'button', onclick: () => openDevlog('담노트') }, '📁 업데이트 소식')))),
     status: '로그인 없이 내 기기에 저장' });
 }
@@ -428,6 +456,51 @@ openDevlog = async function (tag) {
   return _openDevlog(tag);
 };
 
+/* ---------- 사용 설명서 ---------- */
+let GUIDE = null;
+async function loadGuide() {
+  if (GUIDE) return GUIDE;
+  try { const r = await fetch('guide.json', { cache: 'no-cache' }); const j = await r.json(); GUIDE = Array.isArray(j) ? j.filter(g => g && g.slug) : []; }
+  catch { GUIDE = []; }
+  return GUIDE;
+}
+async function openGuide(slug) {
+  const pages = await loadGuide();
+  let o = WINS.get('guide');
+  if (!o) {
+    const nav = h('nav', { class: 'hnav', 'aria-label': '설명서 목차' });
+    const main = h('div', { class: 'hmain' });
+    o = openWin({ id: 'guide', hash: '#/guide', title: '담노트 사용 설명서 - 도움말 및 지원', icon: '❓', w: 820, h: 560, menu: false,
+      body: h('div', { class: 'body', style: 'margin-top:0' }, h('div', { class: 'help' },
+        h('div', { class: 'hhead' }, h('span', { class: 'g', 'aria-hidden': 'true' }, '❓'), h('div', null, h('b', null, '도움말 및 지원 센터'), h('small', null, '담노트 DAM:NOTE 사용 설명서'))),
+        h('div', { class: 'hwrap' }, nav, main))),
+      status: h('span', null, '궁금한 게 더 있으면 의견함으로 물어봐 주세요') });
+    o.nav = nav; o.main = main;
+    for (const g of pages) {
+      const b = h('button', { type: 'button', 'data-s': g.slug, onclick: () => o.show(g.slug) }, h('span', { class: 'g', 'aria-hidden': 'true' }, g.icon || '📄'), h('span', null, g.title));
+      nav.append(b);
+    }
+    o.show = s => {
+      const i = Math.max(0, pages.findIndex(g => g.slug === s));
+      const g = pages[i];
+      o.nav.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.s === (g && g.slug)));
+      if (!g) { o.main.replaceChildren(h('div', { class: 'empty' }, '설명서를 불러오지 못했어요')); return; }
+      const art = h('article', { class: 'post' }, h('h1', null, (g.icon ? g.icon + ' ' : '') + g.title), h('div', { html: g.html || '' }));
+      art.querySelectorAll('a[href^="http"]').forEach(a => { a.target = '_blank'; a.rel = 'noopener'; });
+      const prev = pages[i - 1], next = pages[i + 1];
+      const pager = h('div', { class: 'hpager' },
+        prev ? h('button', { class: 'xbtn', type: 'button', onclick: () => o.show(prev.slug) }, '◀ ' + prev.title) : h('span'),
+        next ? h('button', { class: 'xbtn', type: 'button', onclick: () => o.show(next.slug) }, next.title + ' ▶') : h('span'));
+      o.main.replaceChildren(art, pager);
+      o.main.closest('.body').scrollTop = 0;
+      o.hash = '#/guide/' + encodeURIComponent(g.slug);
+      if (location.hash !== o.hash) history.replaceState(null, '', o.hash);
+      const on = o.nav.querySelector('button.on'); if (on && on.scrollIntoView) on.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    };
+  } else focusWin(o);
+  o.show(slug || (pages[0] && pages[0].slug));
+}
+
 async function openPost(slug) {
   const posts = await loadPosts();
   const p = posts.find(x => x.slug === slug);
@@ -453,7 +526,7 @@ async function openPost(slug) {
 /* ---------- 바탕화면 아이콘 ---------- */
 function buildIcons() {
   const box = $('#icons');
-  for (const key of ['about', 'damnote', 'devlog', 'feedback', 'trash']) {
+  for (const key of ['about', 'damnote', 'guide', 'devlog', 'feedback', 'trash']) {
     const a = APPS[key];
     const b = h('button', { type: 'button', class: 'ico', 'aria-label': a.label + ' 열기' }, h('span', { class: 'g', 'aria-hidden': 'true' }, a.icon), h('span', { class: 'l' }, a.label));
     b.addEventListener('click', e => {
@@ -475,6 +548,7 @@ function buildMenu() {
   const item = (g, title, sub, fn) => h('button', { type: 'button', class: 'it', role: 'menuitem', onclick: () => { toggleMenu(false); fn(); } }, h('span', { class: 'g', 'aria-hidden': 'true' }, g), h('span', null, h('b', null, title), sub ? h('small', null, sub) : null));
   L.append(
     item('📒', '담노트', '템플릿 메모장', openDamnote),
+    item('❓', '사용 설명서', '담노트 쓰는 법', () => openGuide()),
     item('📁', '개발 일지', '업데이트·만드는 이야기', () => openDevlog()),
     item('💌', '의견함', '의견 보내기', openFeedback));
   R.append(
@@ -505,6 +579,7 @@ function route() {
   if (!m) return;
   const [, k, arg] = m;
   if (k === 'post' && arg) openPost(decodeURIComponent(arg));
+  else if (k === 'guide') openGuide(arg ? decodeURIComponent(arg) : undefined);
   else if (APPS[k]) APPS[k].open();
 }
 

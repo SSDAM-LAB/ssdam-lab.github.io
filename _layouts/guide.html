@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{{ page.title }} - 담노트 사용 설명서</title>
+<meta property="og:title" content="{{ page.title | escape }}">
+<meta property="og:description" content="{{ page.excerpt | strip_html | strip_newlines | truncate: 90 | escape }}">
+<meta property="og:type" content="article">
+<script>location.replace({{ "/" | relative_url | jsonify }} + '#/guide/' + encodeURIComponent({{ page.slug | jsonify }}));</script>
+</head>
+<body style="font-family:sans-serif;max-width:680px;margin:30px auto;padding:0 16px;line-height:1.8">
+<p><a href="{{ "/" | relative_url }}">← 쓰담랩</a></p>
+<h1>{{ page.title }}</h1>
+{{ content }}
+</body>
+</html>

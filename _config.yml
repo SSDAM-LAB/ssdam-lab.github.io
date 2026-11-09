@@ -4,6 +4,10 @@ lang: ko
 timezone: Asia/Seoul
 markdown: kramdown
 permalink: /blog/:title/
+collections:
+  guide:
+    output: true
+    permalink: /guide/:name/
 exclude:
   - README.md
 defaults:
@@ -12,3 +16,8 @@ defaults:
       type: posts
     values:
       layout: post
+  - scope:
+      path: ""
+      type: guide
+    values:
+      layout: guide
