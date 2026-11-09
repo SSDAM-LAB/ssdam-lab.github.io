@@ -30,7 +30,9 @@ a{color:#0b4fd1}
    linear-gradient(#5aa2ef 0%,#8cc2f5 40%,#c9e3fa 72%,#f3dbe7 100%)}
 #desk::after{content:"SSDAM-LAB";position:absolute;right:18px;bottom:10px;color:#fff;opacity:.75;font:italic 700 22px/1 Tahoma,sans-serif;letter-spacing:.5px;text-shadow:1px 1px 2px #0003;pointer-events:none}
 
-.icons{position:absolute;left:10px;top:10px;display:grid;grid-auto-flow:row;gap:6px;width:84px}
+.icons{position:absolute;left:10px;top:10px;bottom:10px;display:flex;flex-direction:column;flex-wrap:wrap;align-content:flex-start;gap:6px 4px}
+.ico .gw{position:relative;display:block}
+.ico .sc{position:absolute;left:-2px;bottom:0;width:14px;height:14px;background:#fff;border:1px solid #777;border-radius:2px;font:700 10px/12px Tahoma,sans-serif;color:#1b4fd1;text-align:center}
 .ico{display:flex;flex-direction:column;align-items:center;gap:3px;width:84px;padding:4px 2px;border:1px dotted transparent;background:none;cursor:default}
 .ico .g{font-size:34px;line-height:40px;filter:drop-shadow(1px 2px 1px #0004)}
 .ico .l{color:#fff;font-size:12px;line-height:1.3;text-align:center;text-shadow:1px 1px 1px #000a;padding:0 3px;word-break:keep-all}
@@ -143,6 +145,25 @@ a{color:#0b4fd1}
 #tray{height:36px;display:flex;align-items:center;gap:8px;padding:0 12px;color:#fff;font-size:12px;border-left:1px solid #0d3aa8;
   background:linear-gradient(#0c59b9 0%,#139ee9 6%,#18b5f2 10%,#139beb 14%,#1290e8 80%,#0d8dea 100%)}
 
+/* 알림 풍선 */
+#balloon{position:fixed;right:10px;bottom:46px;width:300px;z-index:9050;background:#ffffe1;border:1px solid #000;border-radius:8px;padding:10px 12px 12px;box-shadow:2px 3px 8px #0004;font-size:12.5px;display:none}
+#balloon.on{display:block}
+#balloon::after{content:"";position:absolute;right:40px;bottom:-10px;border:10px solid transparent;border-bottom:0;border-top-color:#000}
+#balloon::before{content:"";position:absolute;right:41px;bottom:-8px;border:9px solid transparent;border-bottom:0;border-top-color:#ffffe1;z-index:1}
+#balloon b{display:flex;align-items:center;gap:6px;font-size:13px;margin-bottom:4px}
+#balloon .bx{position:absolute;right:6px;top:6px;width:18px;height:18px;border:1px solid #999;border-radius:3px;background:#fff;font-size:10px;line-height:1;cursor:pointer;padding:0}
+#balloon .btns{margin-top:10px}
+
+/* 설치 안내 */
+.dtabs{display:flex;gap:4px;margin:6px 0 0;border-bottom:1px solid #919b9c}
+.dtabs button{white-space:nowrap;padding:4px 12px;border:1px solid #919b9c;border-bottom:0;border-radius:4px 4px 0 0;background:linear-gradient(#fff,#ecebe6);cursor:pointer;font-size:12.5px;margin-bottom:-1px}
+.dtabs button.on{background:#fff;border-top:2px solid #f8b636;font-weight:700}
+.dpane{border:1px solid #919b9c;border-top:0;padding:12px 14px;background:#fff}
+.dpane ol{margin:0;padding-left:20px}
+.dpane li{margin:4px 0}
+.warn{margin-top:10px;padding:8px 10px;background:#fff6d6;border:1px solid #f0d77a;border-radius:4px;font-size:12.5px}
+.here{font-size:11px;color:#a3285a;background:#fde3ec;border-radius:8px;padding:0 6px;margin-left:4px;font-weight:400}
+
 /* 시작 메뉴 */
 #menu{position:fixed;left:0;bottom:36px;width:330px;max-width:100vw;z-index:9100;border:2px solid #1c4ec0;border-radius:8px 8px 0 0;overflow:hidden;box-shadow:3px -2px 10px #0005;display:none}
 #menu.on{display:block}
@@ -182,7 +203,7 @@ a{color:#0b4fd1}
 
 /* 휴대폰 */
 @media (max-width:700px){
-  .icons{grid-template-columns:repeat(3,84px);width:auto;gap:12px 8px;left:50%;transform:translateX(-50%);top:18px}
+  .icons{display:grid;grid-template-columns:repeat(3,84px);gap:12px 8px;left:50%;transform:translateX(-50%);top:18px;bottom:auto}
   .win{left:0!important;top:0!important;width:100%!important;height:100%!important;border-radius:0;border-width:0}
   .tb{margin:0;border-radius:0;height:36px}
   .tb button{width:28px;height:28px}
@@ -197,6 +218,8 @@ a{color:#0b4fd1}
   .post{padding:18px 18px 30px;font-size:15.5px}
   .task{flex-basis:110px}
   #desk::after{font-size:17px}
+  #balloon{left:8px;right:8px;width:auto}
+  .dtabs button{padding:4px 8px;font-size:12px}
 }
 </style>
 </head>
@@ -228,6 +251,13 @@ a{color:#0b4fd1}
   <div id="tasks"></div>
   <div id="tray"><span aria-hidden="true">🔈</span><span id="clock"></span></div>
 </nav>
+
+<div id="balloon" role="status" aria-live="polite">
+  <button class="bx" type="button" aria-label="알림 닫기">✕</button>
+  <b>🐰 담노트를 써 보세요</b>
+  <div>로그인 없이 바로 쓰는 템플릿 메모장이에요. 설치하면 앱처럼 쓸 수 있어요.</div>
+  <div class="btns"><button class="xbtn" type="button" id="bGo">📒 바로 쓰기</button><button class="xbtn" type="button" id="bIns">📲 설치 방법</button></div>
+</div>
 
 <div id="bye" class="screen">
   <p>이제 창을 닫아도 안전합니다 🐰</p>
@@ -298,6 +328,7 @@ function closeWin(w) {
 function minWin(w) { w.el.classList.add('min'); w.task.classList.remove('on'); const t = topWin(); focusWin(t); if (!t) history.replaceState(null, '', location.pathname); }
 
 function openWin({ id, title, icon, w = 560, h: ht = 420, body, menu = true, status, hash }) {
+  if (isPhone()) { const bl = document.getElementById('balloon'); if (bl) bl.classList.remove('on'); }
   if (WINS.has(id)) { const o = WINS.get(id); focusWin(o); return o; }
   const desk = $('#desk');
   const dw = desk.clientWidth, dh = desk.clientHeight;
@@ -345,7 +376,9 @@ function dragify(win, handle) {
 /* ---------- 창 내용 ---------- */
 const APPS = {
   about: { icon: '🐰', label: '쓰담랩 소개', open: openAbout },
-  damnote: { icon: '📒', label: '담노트', open: openDamnote },
+  go: { icon: '📒', label: '담노트 바로가기', shortcut: true, open: () => window.open(SITE.damnote, '_blank', 'noopener') },
+  install: { icon: '📲', label: '담노트 설치하기', open: () => openInstall() },
+  damnote: { icon: '📒', label: '담노트 정보', open: openDamnote },
   guide: { icon: '❓', label: '사용 설명서', open: () => openGuide() },
   devlog: { icon: '📁', label: '개발 일지', open: () => openDevlog() },
   feedback: { icon: '💌', label: '의견함', open: openFeedback },
@@ -383,12 +416,57 @@ function openDamnote() {
           h('li', null, '폴더 정리, 앱 잠금, 백업'),
           h('li', null, '숫자 6자리로 다른 기기와 메모 맞추기'))),
       h('fieldset', null, h('legend', null, '설치하기'),
-        h('div', null, '열어서 주소창의 설치 버튼(PC·안드로이드)이나 공유 → 홈 화면에 추가(아이폰)를 누르면 앱처럼 쓸 수 있어요. 자세한 방법은 사용 설명서에 있어요.')),
+        h('div', null, '설치하면 바탕화면·홈 화면 아이콘으로 바로 열리고, 인터넷이 없어도 써져요. 「📲 설치하기」에서 기기별 방법을 볼 수 있어요.')),
       h('div', { class: 'btns' },
         h('a', { class: 'xbtn', href: SITE.damnote, target: '_blank', rel: 'noopener' }, '📒 담노트 열기'),
+        h('button', { class: 'xbtn', type: 'button', onclick: () => openInstall() }, '📲 설치하기'),
         h('button', { class: 'xbtn', type: 'button', onclick: () => openGuide() }, '❓ 사용 설명서'),
         h('button', { class: 'xbtn', type: 'button', onclick: () => openDevlog('담노트') }, '📁 업데이트 소식')))),
     status: '로그인 없이 내 기기에 저장' });
+}
+
+const UA = navigator.userAgent;
+const DEV = /iPhone|iPad|iPod/.test(UA) || (/Macintosh/.test(UA) && navigator.maxTouchPoints > 1) ? 'ios' : /Android/i.test(UA) ? 'android' : 'pc';
+const IN_APP = /KAKAOTALK|Instagram|FBAN|FBAV|Line\/|NAVER|DaumApps|Discord|Twitter|everytimeApp/i.test(UA);
+const INSTALL = {
+  pc: { tab: '🖥 PC', steps: [
+    '아래 「담노트 열기」를 눌러 크롬이나 엣지로 담노트를 열어요.',
+    '주소창 오른쪽 끝의 설치 아이콘(🖥⬇)을 누르고 「설치」를 눌러요.',
+    '아이콘이 안 보이면 담노트의 ⚙️ 설정 → 「앱 설치」를 눌러요.',
+    '이제 바탕화면이나 시작 메뉴의 🐰 담노트 아이콘으로 열면 돼요.'] },
+  android: { tab: '🤖 안드로이드', steps: [
+    '아래 「담노트 열기」를 눌러 크롬으로 담노트를 열어요.',
+    '오른쪽 위 ⋮ 메뉴를 눌러요.',
+    '「앱 설치」 또는 「홈 화면에 추가」를 누르고 「설치」를 눌러요.',
+    '이제 홈 화면의 🐰 담노트 아이콘으로 열면 돼요.'] },
+  ios: { tab: '🍎 아이폰', steps: [
+    '아래 「담노트 열기」를 눌러 꼭 Safari로 담노트를 열어요.',
+    '화면 아래(또는 위)의 공유 버튼 ⬆️ 을 눌러요.',
+    '목록을 내려서 「홈 화면에 추가」를 누르고, 오른쪽 위 「추가」를 눌러요.',
+    '이제 홈 화면의 🐰 담노트 아이콘으로 열면 돼요.'],
+    note: '🍎 아이폰은 홈 화면 앱과 Safari가 저장 공간을 따로 써요. 메모가 오래 안전하게 남도록 설치한 뒤에는 홈 화면 아이콘으로만 열어 주세요.' },
+};
+function openInstall(dev) {
+  let cur = dev || DEV;
+  const tabs = h('div', { class: 'dtabs', role: 'tablist' });
+  const pane = h('div', { class: 'dpane' });
+  const draw = () => {
+    tabs.replaceChildren(...Object.keys(INSTALL).map(k => h('button', { type: 'button', role: 'tab', 'aria-selected': k === cur, class: k === cur ? 'on' : '', onclick: () => { cur = k; draw(); } },
+      INSTALL[k].tab, k === DEV ? h('span', { class: 'here' }, '지금') : null)));
+    const d = INSTALL[cur];
+    pane.replaceChildren(...[h('ol', null, ...d.steps.map(t => h('li', null, t))), d.note ? h('div', { class: 'warn' }, d.note) : null].filter(Boolean));
+  };
+  draw();
+  openWin({ id: 'install', hash: '#/install', title: '담노트 설치 마법사', icon: '📲', w: 500, h: 520, menu: false,
+    body: h('div', { class: 'body' }, h('div', { class: 'sheet' },
+      h('div', { class: 'hd' }, h('div', { class: 'g' }, '📲'), h('div', null, h('h2', null, '담노트 설치하기'), h('div', { class: 'sub' }, '설치하면 앱처럼 아이콘으로 바로 열리고, 인터넷 없이도 써져요'))),
+      IN_APP ? h('div', { class: 'warn', style: 'margin:0 0 10px' }, '⚠️ 지금 카톡·디스코드 같은 앱 안에서 열려 있어요. 이 상태에서는 설치가 안 돼요. 오른쪽 위(또는 아래) 메뉴에서 「다른 브라우저로 열기」를 눌러 ', DEV === 'ios' ? 'Safari' : '크롬', '로 열어 주세요.') : null,
+      tabs, pane,
+      h('div', { class: 'btns' },
+        h('a', { class: 'xbtn', href: SITE.damnote, target: '_blank', rel: 'noopener' }, '📒 담노트 열기'),
+        h('button', { class: 'xbtn', type: 'button', onclick: () => openGuide('01-start') }, '❓ 자세한 설명'),
+        h('button', { class: 'xbtn', type: 'button', onclick: () => openGuide('08-faq') }, '💬 예전 주소에서 이사하기')))),
+    status: '설치하지 않고 브라우저에서 바로 써도 돼요' });
 }
 
 function openFeedback() {
@@ -526,9 +604,9 @@ async function openPost(slug) {
 /* ---------- 바탕화면 아이콘 ---------- */
 function buildIcons() {
   const box = $('#icons');
-  for (const key of ['about', 'damnote', 'guide', 'devlog', 'feedback', 'trash']) {
+  for (const key of ['go', 'install', 'guide', 'about', 'devlog', 'feedback', 'trash']) {
     const a = APPS[key];
-    const b = h('button', { type: 'button', class: 'ico', 'aria-label': a.label + ' 열기' }, h('span', { class: 'g', 'aria-hidden': 'true' }, a.icon), h('span', { class: 'l' }, a.label));
+    const b = h('button', { type: 'button', class: 'ico', 'aria-label': a.label + ' 열기' }, h('span', { class: 'gw' }, h('span', { class: 'g', 'aria-hidden': 'true' }, a.icon), a.shortcut ? h('span', { class: 'sc', 'aria-hidden': 'true' }, '↗') : null), h('span', { class: 'l' }, a.label));
     b.addEventListener('click', e => {
       e.stopPropagation();
       box.querySelectorAll('.ico.on').forEach(x => x.classList.remove('on'));
@@ -547,7 +625,9 @@ function buildMenu() {
   const L = $('#menuL'), R = $('#menuR');
   const item = (g, title, sub, fn) => h('button', { type: 'button', class: 'it', role: 'menuitem', onclick: () => { toggleMenu(false); fn(); } }, h('span', { class: 'g', 'aria-hidden': 'true' }, g), h('span', null, h('b', null, title), sub ? h('small', null, sub) : null));
   L.append(
-    item('📒', '담노트', '템플릿 메모장', openDamnote),
+    item('📒', '담노트 바로 쓰기', '새 탭에서 열기', APPS.go.open),
+    item('📲', '담노트 설치하기', 'PC · 안드로이드 · 아이폰', () => openInstall()),
+    item('ℹ️', '담노트 정보', '어떤 앱인지 보기', openDamnote),
     item('❓', '사용 설명서', '담노트 쓰는 법', () => openGuide()),
     item('📁', '개발 일지', '업데이트·만드는 이야기', () => openDevlog()),
     item('💌', '의견함', '의견 보내기', openFeedback));
@@ -587,7 +667,13 @@ function route() {
 buildIcons(); buildMenu(); tick(); setInterval(tick, 15000);
 loadPosts();
 const boot = $('#boot');
-const endBoot = () => { if (!boot.isConnected) return; boot.remove(); store.set('ssdam:booted', '1'); route(); if (!location.hash && !isPhone()) openAbout(); };
+const balloon = $('#balloon');
+const hideBalloon = () => { balloon.classList.remove('on'); store.set('ssdam:balloon', '1'); };
+balloon.querySelector('.bx').addEventListener('click', hideBalloon);
+$('#bGo').addEventListener('click', () => { hideBalloon(); APPS.go.open(); });
+$('#bIns').addEventListener('click', () => { hideBalloon(); openInstall(); });
+const showBalloon = () => { if (!store.get('ssdam:balloon')) setTimeout(() => balloon.classList.add('on'), 600); };
+const endBoot = () => { if (!boot.isConnected) return; boot.remove(); store.set('ssdam:booted', '1'); route(); if (!location.hash && !isPhone()) openAbout(); showBalloon(); };
 if (store.get('ssdam:booted') || matchMedia('(prefers-reduced-motion:reduce)').matches) endBoot();
 else { boot.addEventListener('click', endBoot); setTimeout(endBoot, 1800); }
 addEventListener('hashchange', route);
