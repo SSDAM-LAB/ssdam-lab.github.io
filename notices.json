@@ -1,0 +1,6 @@
+---
+layout: null
+---
+{% assign list = site.notices | sort: "date" | reverse %}[{% for p in list %}
+{"slug":{{ p.slug | jsonify }},"title":{{ p.title | jsonify }},"date":{{ p.date | date: "%Y-%m-%d" | jsonify }},"pin":{% if p.pin %}true{% else %}false{% endif %},"html":{{ p.content | jsonify }}}{% unless forloop.last %},{% endunless %}{% endfor %}
+]

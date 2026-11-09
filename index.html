@@ -145,6 +145,19 @@ a{color:#0b4fd1}
 #tray{height:36px;display:flex;align-items:center;gap:8px;padding:0 12px;color:#fff;font-size:12px;border-left:1px solid #0d3aa8;
   background:linear-gradient(#0c59b9 0%,#139ee9 6%,#18b5f2 10%,#139beb 14%,#1290e8 80%,#0d8dea 100%)}
 
+/* 공지사항 게시판 */
+.bd{width:100%;border-collapse:collapse;font-size:13px}
+.bd th{background:linear-gradient(#fff,#ebeadb);border-bottom:2px solid #d6d2c2;border-right:1px solid #e2dfd2;padding:5px 8px;font-weight:400;text-align:left;color:#333;position:sticky;top:0}
+.bd td{padding:8px;border-bottom:1px solid #eee;cursor:pointer}
+.bd tr:hover td{background:#f1f5fe}
+.bd .n{width:56px;text-align:center;color:#888}
+.bd .d{width:96px;color:#888;font-size:12px;white-space:nowrap}
+.bd tr.pin td{background:#fffbe6}
+.bd tr.pin:hover td{background:#fff3c4}
+.bd .pinb{display:inline-block;font-size:11px;padding:0 6px;border-radius:8px;background:#d9532c;color:#fff}
+.bd .new{display:inline-block;font-size:10px;padding:0 5px;border-radius:7px;background:#e0628f;color:#fff;margin-left:6px;vertical-align:1px}
+.ntool{display:flex;align-items:center;gap:8px;padding:4px 8px;border-bottom:1px solid #d5d2c2;font-size:12px}
+
 /* 알림 풍선 */
 #balloon{position:fixed;right:10px;bottom:46px;width:300px;z-index:9050;background:#ffffe1;border:1px solid #000;border-radius:8px;padding:10px 12px 12px;box-shadow:2px 3px 8px #0004;font-size:12.5px;display:none}
 #balloon.on{display:block}
@@ -219,6 +232,8 @@ a{color:#0b4fd1}
   .task{flex-basis:110px}
   #desk::after{font-size:17px}
   #balloon{left:8px;right:8px;width:auto}
+  .bd .n{width:40px}
+  .bd .d{width:78px}
   .dtabs button{padding:4px 8px;font-size:12px}
 }
 </style>
@@ -254,9 +269,9 @@ a{color:#0b4fd1}
 
 <div id="balloon" role="status" aria-live="polite">
   <button class="bx" type="button" aria-label="알림 닫기">✕</button>
-  <b>🐰 담노트를 써 보세요</b>
-  <div>로그인 없이 바로 쓰는 템플릿 메모장이에요. 설치하면 앱처럼 쓸 수 있어요.</div>
-  <div class="btns"><button class="xbtn" type="button" id="bGo">📒 바로 쓰기</button><button class="xbtn" type="button" id="bIns">📲 설치 방법</button></div>
+  <b id="bTitle">🐰 담노트를 써 보세요</b>
+  <div id="bText">로그인 없이 바로 쓰는 템플릿 메모장이에요. 설치하면 앱처럼 쓸 수 있어요.</div>
+  <div class="btns" id="bBtns"><button class="xbtn" type="button" id="bGo">📒 바로 쓰기</button><button class="xbtn" type="button" id="bIns">📲 설치 방법</button></div>
 </div>
 
 <div id="bye" class="screen">
@@ -379,6 +394,7 @@ const APPS = {
   go: { icon: '📒', label: '담노트 바로가기', shortcut: true, open: () => window.open(SITE.damnote, '_blank', 'noopener') },
   install: { icon: '📲', label: '담노트 설치하기', open: () => openInstall() },
   damnote: { icon: '📒', label: '담노트 정보', open: openDamnote },
+  notice: { icon: '📢', label: '공지사항', open: () => openNotice() },
   guide: { icon: '❓', label: '사용 설명서', open: () => openGuide() },
   devlog: { icon: '📁', label: '개발 일지', open: () => openDevlog() },
   feedback: { icon: '💌', label: '의견함', open: openFeedback },
@@ -534,6 +550,64 @@ openDevlog = async function (tag) {
   return _openDevlog(tag);
 };
 
+/* ---------- 공지사항 ---------- */
+const local = { get(k) { try { return localStorage.getItem(k); } catch { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch {} } };
+let NOTICES = null;
+async function loadNotices() {
+  if (NOTICES) return NOTICES;
+  try { const r = await fetch('notices.json', { cache: 'no-cache' }); const j = await r.json(); NOTICES = Array.isArray(j) ? j.filter(n => n && n.slug) : []; }
+  catch { NOTICES = []; }
+  NOTICES.sort((a, b) => String(b.date).localeCompare(String(a.date)));
+  return NOTICES;
+}
+const isRecent = d => { const t = Date.parse(d); return t && Date.now() - t < 7 * 864e5; };
+async function openNotice(slug) {
+  const list = await loadNotices();
+  let o = WINS.get('notice');
+  if (!o) {
+    const area = h('div', { class: 'body', style: 'margin-top:0' });
+    const tool = h('div', { class: 'ntool' });
+    o = openWin({ id: 'notice', hash: '#/notice', title: '공지사항 - 쓰담연구실 게시판', icon: '📢', w: 640, h: 460,
+      body: h('div', { style: 'flex:1;display:flex;flex-direction:column;min-height:0' }, tool, area),
+      status: h('span', null, `글 ${list.length}개`) });
+    o.area = area; o.tool = tool;
+    o.showList = () => {
+      o.tool.replaceChildren(h('span', null, '📢 쓰담연구실 공지사항'));
+      const pinned = list.filter(n => n.pin), rest = list.filter(n => !n.pin);
+      const tbody = h('tbody');
+      const row = (n, num) => {
+        const tr = h('tr', { class: n.pin ? 'pin' : '', tabindex: '0' },
+          h('td', { class: 'n' }, n.pin ? h('span', { class: 'pinb' }, '공지') : String(num)),
+          h('td', null, (n.pin ? '📌 ' : '') + n.title, isRecent(n.date) ? h('span', { class: 'new' }, 'N') : null),
+          h('td', { class: 'd' }, fmtDate(n.date)));
+        tr.addEventListener('click', () => o.showOne(n.slug));
+        tr.addEventListener('keydown', e => { if (e.key === 'Enter') o.showOne(n.slug); });
+        return tr;
+      };
+      pinned.forEach(n => tbody.append(row(n)));
+      rest.forEach((n, i) => tbody.append(row(n, rest.length - i)));
+      o.area.replaceChildren(list.length
+        ? h('table', { class: 'bd' }, h('thead', null, h('tr', null, h('th', { class: 'n' }, '번호'), h('th', null, '제목'), h('th', { class: 'd' }, '날짜'))), tbody)
+        : h('div', { class: 'empty' }, '아직 공지가 없어요'));
+      o.area.scrollTop = 0;
+      o.hash = '#/notice'; if (location.hash !== o.hash) history.replaceState(null, '', o.hash);
+    };
+    o.showOne = s => {
+      const n = list.find(x => x.slug === s);
+      if (!n) return o.showList();
+      const back = h('button', { class: 'xbtn', type: 'button', style: 'min-width:0;padding:1px 10px;font-size:11.5px', onclick: () => o.showList() }, '◀ 목록');
+      o.tool.replaceChildren(back, h('span', { style: 'color:#666' }, fmtDate(n.date)));
+      const art = h('article', { class: 'post' }, h('h1', null, (n.pin ? '📌 ' : '') + n.title), h('div', { class: 'meta' }, fmtDate(n.date), ' · 쓰담연구실'), h('div', { html: n.html || '' }));
+      art.querySelectorAll('a[href^="http"]').forEach(a => { a.target = '_blank'; a.rel = 'noopener'; });
+      o.area.replaceChildren(art); o.area.scrollTop = 0;
+      o.hash = '#/notice/' + encodeURIComponent(n.slug); if (location.hash !== o.hash) history.replaceState(null, '', o.hash);
+    };
+  } else focusWin(o);
+  if (list[0]) local.set('ssdam:seenNotice', list[0].slug);
+  if ($('#bTitle').textContent.startsWith('📢')) $('#balloon').classList.remove('on');
+  slug ? o.showOne(slug) : o.showList();
+}
+
 /* ---------- 사용 설명서 ---------- */
 let GUIDE = null;
 async function loadGuide() {
@@ -604,7 +678,7 @@ async function openPost(slug) {
 /* ---------- 바탕화면 아이콘 ---------- */
 function buildIcons() {
   const box = $('#icons');
-  for (const key of ['go', 'install', 'guide', 'about', 'devlog', 'feedback', 'trash']) {
+  for (const key of ['go', 'install', 'notice', 'guide', 'about', 'devlog', 'feedback', 'trash']) {
     const a = APPS[key];
     const b = h('button', { type: 'button', class: 'ico', 'aria-label': a.label + ' 열기' }, h('span', { class: 'gw' }, h('span', { class: 'g', 'aria-hidden': 'true' }, a.icon), a.shortcut ? h('span', { class: 'sc', 'aria-hidden': 'true' }, '↗') : null), h('span', { class: 'l' }, a.label));
     b.addEventListener('click', e => {
@@ -628,6 +702,7 @@ function buildMenu() {
     item('📒', '담노트 바로 쓰기', '새 탭에서 열기', APPS.go.open),
     item('📲', '담노트 설치하기', 'PC · 안드로이드 · 아이폰', () => openInstall()),
     item('ℹ️', '담노트 정보', '어떤 앱인지 보기', openDamnote),
+    item('📢', '공지사항', '꼭 알아야 할 소식', () => openNotice()),
     item('❓', '사용 설명서', '담노트 쓰는 법', () => openGuide()),
     item('📁', '개발 일지', '업데이트·만드는 이야기', () => openDevlog()),
     item('💌', '의견함', '의견 보내기', openFeedback));
@@ -660,6 +735,7 @@ function route() {
   const [, k, arg] = m;
   if (k === 'post' && arg) openPost(decodeURIComponent(arg));
   else if (k === 'guide') openGuide(arg ? decodeURIComponent(arg) : undefined);
+  else if (k === 'notice') openNotice(arg ? decodeURIComponent(arg) : undefined);
   else if (APPS[k]) APPS[k].open();
 }
 
@@ -672,7 +748,18 @@ const hideBalloon = () => { balloon.classList.remove('on'); store.set('ssdam:bal
 balloon.querySelector('.bx').addEventListener('click', hideBalloon);
 $('#bGo').addEventListener('click', () => { hideBalloon(); APPS.go.open(); });
 $('#bIns').addEventListener('click', () => { hideBalloon(); openInstall(); });
-const showBalloon = () => { if (!store.get('ssdam:balloon')) setTimeout(() => balloon.classList.add('on'), 600); };
+const showBalloon = async () => {
+  const ns = await loadNotices();
+  const top = ns[0];
+  if (top && local.get('ssdam:seenNotice') !== top.slug && !location.hash.startsWith('#/notice')) {
+    $('#bTitle').textContent = '📢 새 공지가 있어요';
+    $('#bText').textContent = top.title;
+    $('#bBtns').replaceChildren(h('button', { class: 'xbtn', type: 'button', onclick: () => { balloon.classList.remove('on'); openNotice(top.slug); } }, '📢 읽어 보기'));
+    setTimeout(() => balloon.classList.add('on'), 600);
+    return;
+  }
+  if (!store.get('ssdam:balloon')) setTimeout(() => balloon.classList.add('on'), 600);
+};
 const endBoot = () => { if (!boot.isConnected) return; boot.remove(); store.set('ssdam:booted', '1'); route(); if (!location.hash && !isPhone()) openAbout(); showBalloon(); };
 if (store.get('ssdam:booted') || matchMedia('(prefers-reduced-motion:reduce)').matches) endBoot();
 else { boot.addEventListener('click', endBoot); setTimeout(endBoot, 1800); }

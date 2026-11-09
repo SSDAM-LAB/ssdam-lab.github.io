@@ -5,12 +5,20 @@ timezone: Asia/Seoul
 markdown: kramdown
 permalink: /blog/:title/
 collections:
+  notices:
+    output: true
+    permalink: /notice/:name/
   guide:
     output: true
     permalink: /guide/:name/
 exclude:
   - README.md
 defaults:
+  - scope:
+      path: ""
+      type: notices
+    values:
+      layout: notice
   - scope:
       path: ""
       type: posts
