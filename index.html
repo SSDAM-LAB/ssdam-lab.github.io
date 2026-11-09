@@ -57,10 +57,23 @@ a{color:#0b4fd1}
 .mb span{padding:1px 6px}
 .mb span:hover{background:#316ac5;color:#fff}
 .body{flex:1;overflow:auto;margin:4px;background:#fff;border:1px solid #7f9db9;user-select:text}
-.sb{font-size:11.5px;color:#444;padding:2px 8px 3px;border-top:1px solid #fff;display:flex;justify-content:space-between}
+.sb{font-size:11.5px;color:#444;padding:2px 20px 3px 8px;border-top:1px solid #fff;display:flex;justify-content:space-between}
 .win.max{left:0!important;top:0!important;width:100%!important;height:100%!important;border-radius:0}
 .win.max .tb{border-radius:0}
 .win.min{display:none}
+.rz{position:absolute;z-index:2;touch-action:none}
+.rz.n{top:-4px;left:8px;right:8px;height:8px;cursor:ns-resize}
+.rz.s{bottom:-4px;left:8px;right:8px;height:8px;cursor:ns-resize}
+.rz.e{right:-5px;top:8px;bottom:8px;width:8px;cursor:ew-resize}
+.rz.w{left:-5px;top:8px;bottom:8px;width:8px;cursor:ew-resize}
+.rz.ne{top:-4px;right:-5px;width:12px;height:12px;cursor:nesw-resize}
+.rz.nw{top:-4px;left:-5px;width:12px;height:12px;cursor:nwse-resize}
+.rz.sw{bottom:-4px;left:-5px;width:12px;height:12px;cursor:nesw-resize}
+.rz.se{bottom:-4px;right:-5px;width:18px;height:18px;cursor:nwse-resize}
+.grip{position:absolute;right:2px;bottom:2px;width:13px;height:13px;pointer-events:none;
+  background:radial-gradient(circle,#a09d8e 1.2px,transparent 1.5px) 0 0/4px 4px;clip-path:polygon(100% 0,100% 100%,0 100%)}
+.win.max .rz,.win.max .grip{display:none}
+body.resizing,body.resizing *{user-select:none!important}
 
 /* 탐색기 */
 .addr{display:flex;align-items:center;gap:6px;padding:3px 6px;font-size:12px;border-bottom:1px solid #d5d2c2}
@@ -221,6 +234,7 @@ a{color:#0b4fd1}
   .tb{margin:0;border-radius:0;height:36px}
   .tb button{width:28px;height:28px}
   .tb .mx{display:none}
+  .rz,.grip{display:none}
   .side{display:none}
   .hwrap{flex-direction:column}
   .hnav{width:auto;display:flex;gap:4px;overflow-x:auto;border-right:0;border-bottom:1px solid #c6d3f7;padding:6px}
@@ -363,12 +377,43 @@ function openWin({ id, title, icon, w = 560, h: ht = 420, body, menu = true, sta
   o.el.addEventListener('pointerdown', () => focusWin(o));
   tb.addEventListener('dblclick', e => { if (e.target.closest('button')) return; o.el.classList.toggle('max'); });
   dragify(o.el, tb);
+  resizable(o.el);
   o.task = h('button', { type: 'button', class: 'task', onclick: () => { const top = topWin(); if (top === o && !o.el.classList.contains('min')) minWin(o); else focusWin(o); } }, h('b', { 'aria-hidden': 'true' }, icon), h('span', null, title));
   $('#tasks').append(o.task);
   desk.append(o.el);
   WINS.set(id, o);
   focusWin(o);
   return o;
+}
+function resizable(win) {
+  const MINW = 280, MINH = 180;
+  for (const dir of ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw']) {
+    const hd = h('div', { class: 'rz ' + dir, 'aria-hidden': 'true' });
+    let sx, sy, r, on = false;
+    hd.addEventListener('pointerdown', e => {
+      if (win.classList.contains('max') || isPhone()) return;
+      e.preventDefault(); e.stopPropagation();
+      on = true; sx = e.clientX; sy = e.clientY;
+      r = { x: win.offsetLeft, y: win.offsetTop, w: win.offsetWidth, h: win.offsetHeight };
+      hd.setPointerCapture(e.pointerId); document.body.classList.add('resizing');
+      win.style.zIndex = ++zTop;
+    });
+    hd.addEventListener('pointermove', e => {
+      if (!on) return;
+      const desk = $('#desk'), DW = desk.clientWidth, DH = desk.clientHeight;
+      const dx = e.clientX - sx, dy = e.clientY - sy;
+      let { x, y, w, h: ht } = r;
+      if (dir.includes('e')) w = Math.min(DW - x, Math.max(MINW, r.w + dx));
+      if (dir.includes('s')) ht = Math.min(DH - y, Math.max(MINH, r.h + dy));
+      if (dir.includes('w')) { const nx = Math.max(0, Math.min(r.x + r.w - MINW, r.x + dx)); w = r.w + (r.x - nx); x = nx; }
+      if (dir.includes('n')) { const ny = Math.max(0, Math.min(r.y + r.h - MINH, r.y + dy)); ht = r.h + (r.y - ny); y = ny; }
+      Object.assign(win.style, { left: x + 'px', top: y + 'px', width: w + 'px', height: ht + 'px' });
+    });
+    const end = () => { on = false; document.body.classList.remove('resizing'); };
+    hd.addEventListener('pointerup', end); hd.addEventListener('pointercancel', end);
+    win.append(hd);
+  }
+  win.append(h('div', { class: 'grip', 'aria-hidden': 'true' }));
 }
 function dragify(win, handle) {
   let sx, sy, ox, oy, on = false;
