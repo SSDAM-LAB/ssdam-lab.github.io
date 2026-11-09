@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>SSDAM-LAB 쓰담랩</title>
-<meta name="description" content="일상을 쓰담쓰담하는 작은 앱을 만드는 쓰담랩. 담노트 DAM:NOTE와 개발 일지.">
-<meta property="og:title" content="SSDAM-LAB 쓰담랩">
+<title>SSDAM-LAB 쓰담연구실</title>
+<meta name="description" content="일상을 쓰담쓰담하는 작은 앱을 만드는 쓰담연구실. 담노트 DAM:NOTE와 개발 일지.">
+<meta property="og:title" content="SSDAM-LAB 쓰담연구실">
 <meta property="og:description" content="일상을 쓰담쓰담하는 작은 앱을 만드는 곳">
 <meta property="og:type" content="website">
 <meta name="theme-color" content="#245edb">
@@ -226,11 +226,11 @@ a{color:#0b4fd1}
 <body>
 
 <div id="boot" class="screen" role="status" aria-label="불러오는 중">
-  <div class="logo"><em>🐰</em> SSDAM-LAB<br><span class="sm">쓰담랩</span></div>
+  <div class="logo"><em>🐰</em> SSDAM-LAB<br><span class="sm">쓰담연구실</span></div>
   <div class="prog" aria-hidden="true"><i><b></b><b></b><b></b></i></div>
 </div>
 
-<main id="desk" aria-label="쓰담랩 바탕화면">
+<main id="desk" aria-label="쓰담연구실 바탕화면">
   <div class="icons" id="icons"></div>
 </main>
 
@@ -264,7 +264,7 @@ a{color:#0b4fd1}
   <button class="xbtn" id="rebootBtn" type="button">다시 켜기</button>
 </div>
 
-<noscript><div style="position:fixed;inset:0;background:#fff;padding:24px;z-index:99999">쓰담랩 홈페이지는 자바스크립트가 켜져 있어야 보여요. <a href="https://ssdam-lab.github.io/damnote/">담노트 바로 가기</a></div></noscript>
+<noscript><div style="position:fixed;inset:0;background:#fff;padding:24px;z-index:99999">쓰담연구실 홈페이지는 자바스크립트가 켜져 있어야 보여요. <a href="https://ssdam-lab.github.io/damnote/">담노트 바로 가기</a></div></noscript>
 
 <script>
 'use strict';
@@ -375,7 +375,7 @@ function dragify(win, handle) {
 
 /* ---------- 창 내용 ---------- */
 const APPS = {
-  about: { icon: '🐰', label: '쓰담랩 소개', open: openAbout },
+  about: { icon: '🐰', label: '쓰담연구실 소개', open: openAbout },
   go: { icon: '📒', label: '담노트 바로가기', shortcut: true, open: () => window.open(SITE.damnote, '_blank', 'noopener') },
   install: { icon: '📲', label: '담노트 설치하기', open: () => openInstall() },
   damnote: { icon: '📒', label: '담노트 정보', open: openDamnote },
@@ -386,12 +386,12 @@ const APPS = {
 };
 
 function openAbout() {
-  openWin({ id: 'about', hash: '#/about', title: '쓰담랩 소개 - 등록 정보', icon: '🐰', w: 440, h: 470, menu: false,
+  openWin({ id: 'about', hash: '#/about', title: '쓰담연구실 소개 - 등록 정보', icon: '🐰', w: 440, h: 470, menu: false,
     body: h('div', { class: 'body' }, h('div', { class: 'sheet' },
-      h('div', { class: 'hd' }, h('div', { class: 'g' }, '🐰'), h('div', null, h('h2', null, 'SSDAM-LAB 쓰담랩'), h('div', { class: 'sub' }, '일상을 쓰담쓰담하는 작은 앱을 만드는 곳'))),
+      h('div', { class: 'hd' }, h('div', { class: 'g' }, '🐰'), h('div', null, h('h2', null, 'SSDAM-LAB 쓰담연구실'), h('div', { class: 'sub' }, '일상을 쓰담쓰담하는 작은 앱을 만드는 곳'))),
       h('fieldset', null, h('legend', null, '만든 것'),
         h('ul', null, h('li', null, '📒 담노트 DAM:NOTE (템플릿 메모장)'))),
-      h('fieldset', null, h('legend', null, '쓰담랩 앱의 약속'),
+      h('fieldset', null, h('legend', null, '쓰담연구실 앱의 약속'),
         h('ul', null,
           h('li', null, '로그인이나 회원가입 없이 써요'),
           h('li', null, '내가 쓴 내용은 내 기기 안에만 저장돼요'),
@@ -488,17 +488,17 @@ async function openDevlog(tag) {
   const filterBox = h('span', null, '');
   const o = openWin({ id: 'devlog', hash: '#/devlog', title: '개발 일지', icon: '📁', w: 640, h: 440,
     body: h('div', { class: 'body', style: 'display:flex;flex-direction:column;margin-top:0' },
-      h('div', { class: 'addr' }, '주소', h('div', { class: 'box' }, 'C:\\쓰담랩\\개발 일지', filterBox)),
+      h('div', { class: 'addr' }, '주소', h('div', { class: 'box' }, 'C:\\쓰담연구실\\개발 일지', filterBox)),
       h('div', { class: 'exp', style: 'flex:1' },
         h('div', { class: 'side' },
           h('div', { class: 'panel' }, h('b', null, '파일 및 폴더 작업'), h('div', null,
             h('a', { onclick: () => render() }, '📄 모든 글 보기'),
             h('a', { onclick: () => render('담노트') }, '📒 담노트 소식만 보기'))),
           h('div', { class: 'panel' }, h('b', null, '기타 위치'), h('div', null,
-            h('a', { onclick: openAbout }, '🐰 쓰담랩 소개'),
+            h('a', { onclick: openAbout }, '🐰 쓰담연구실 소개'),
             h('a', { onclick: openFeedback }, '💌 의견함')))),
         list)),
-    status: h('span', null, status, h('span', null, '쓰담랩')) });
+    status: h('span', null, status, h('span', null, '쓰담연구실')) });
   if (!o.render) {
     o.render = render;
   }
@@ -632,7 +632,7 @@ function buildMenu() {
     item('📁', '개발 일지', '업데이트·만드는 이야기', () => openDevlog()),
     item('💌', '의견함', '의견 보내기', openFeedback));
   R.append(
-    item('🐰', '쓰담랩 소개', null, openAbout),
+    item('🐰', '쓰담연구실 소개', null, openAbout),
     item('🗑️', '휴지통', null, openTrash),
     item('🌐', 'GitHub', null, () => window.open(SITE.github, '_blank', 'noopener')));
   $('#start').addEventListener('click', e => { e.stopPropagation(); toggleMenu(); });

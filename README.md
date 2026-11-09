@@ -1,4 +1,4 @@
-# 🐰 SSDAM-LAB 쓰담랩
+# 🐰 SSDAM-LAB 쓰담연구실
 
 https://ssdam-lab.github.io/
 
