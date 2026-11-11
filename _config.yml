@@ -2,6 +2,8 @@
 title: SSDAM-LAB 쓰담연구실
 lang: ko
 timezone: Asia/Seoul
+# 예약 공지: 날짜가 미래인 글도 미리 만들어 두고, 화면에서 그 시각이 되면 보여 줘요
+future: true
 markdown: kramdown
 permalink: /blog/:title/
 collections:

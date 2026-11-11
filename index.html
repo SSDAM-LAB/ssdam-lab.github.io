@@ -330,7 +330,7 @@ async function loadPosts() {
   try {
     const r = await fetch('posts.json', { cache: 'no-cache' });
     const j = await r.json();
-    POSTS = Array.isArray(j) ? j.filter(p => p && p.slug) : [];
+    POSTS = Array.isArray(j) ? j.filter(p => p && p.slug && (!p.at || isNaN(Date.parse(p.at)) || Date.parse(p.at) <= Date.now())) : [];
   } catch { POSTS = []; }
   POSTS.sort((a, b) => String(b.date).localeCompare(String(a.date)));
   return POSTS;
@@ -602,6 +602,10 @@ async function loadNotices() {
   if (NOTICES) return NOTICES;
   try { const r = await fetch('notices.json', { cache: 'no-cache' }); const j = await r.json(); NOTICES = Array.isArray(j) ? j.filter(n => n && n.slug) : []; }
   catch { NOTICES = []; }
+  // 예약 공지: 올릴 시각이 된 것만 보이고, 고정은 pinUntil까지만
+  const now = Date.now();
+  const ok = (v, t) => { const x = Date.parse(v); return !v || isNaN(x) || x <= t; };
+  NOTICES = NOTICES.filter(n => ok(n.at, now)).map(n => ({ ...n, pin: !!n.pin && !(n.pinUntil && !isNaN(Date.parse(n.pinUntil)) && Date.parse(n.pinUntil) <= now) }));
   NOTICES.sort((a, b) => String(b.date).localeCompare(String(a.date)));
   return NOTICES;
 }
